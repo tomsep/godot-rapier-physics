@@ -666,6 +666,26 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
             .damped_spring_joint_get_param(joint, param)
     }
 
+    fn joint_make_wheel_joint_2d(&mut self, rid: Rid, anchor: Vector2, body_a: Rid, body_b: Rid) {
+        self.implementation.joint_make_wheel(rid, anchor, anchor, body_a, body_b);
+    }
+
+    fn wheel_joint_set_param(&mut self, joint: Rid, param: WheelJointParam, value: f32) {
+        self.implementation.wheel_joint_set_param(joint, param, value);
+    }
+
+    fn wheel_joint_get_param(&self, joint: Rid, param: WheelJointParam) -> f32 {
+        self.implementation.wheel_joint_get_param(joint, param)
+    }
+
+    fn wheel_joint_set_flag(&mut self, joint: Rid, flag: WheelJointFlag, enabled: bool) {
+        self.implementation.wheel_joint_set_flag(joint, flag, enabled);
+    }
+
+    fn wheel_joint_get_flag(&self, joint: Rid, flag: WheelJointFlag) -> bool {
+        self.implementation.wheel_joint_get_flag(joint, flag)
+    }
+
     fn joint_get_type(&self, joint: Rid) -> JointType {
         self.implementation.joint_get_type(joint)
     }
