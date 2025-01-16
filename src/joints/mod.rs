@@ -7,6 +7,10 @@ pub mod rapier_empty_joint;
 pub mod rapier_generic_6dof_joint_3d;
 #[cfg(feature = "dim2")]
 pub mod rapier_groove_joint_2d;
+#[cfg(feature = "dim2")]
+pub mod wheel_joint_options;
+#[cfg(feature = "dim2")]
+pub mod rapier_wheel_joint_2d;
 pub mod rapier_joint;
 pub mod rapier_joint_base;
 pub mod rapier_revolute_joint;

@@ -32,6 +32,8 @@ use crate::joints::rapier_joint::IRapierJoint;
 use crate::joints::rapier_joint::RapierJoint;
 use crate::joints::rapier_joint_base::RapierJointType;
 use crate::joints::rapier_revolute_joint::RapierRevoluteJoint;
+#[cfg(feature = "dim2")]
+use crate::joints::rapier_wheel_joint_2d::RapierWheelJoint2D;
 #[cfg(feature = "dim3")]
 use crate::joints::rapier_spherical_joint_3d::RapierSphericalJoint3D;
 use crate::rapier_wrapper::prelude::*;
@@ -2472,6 +2474,72 @@ impl RapierPhysicsServerImpl {
             return joint.get_param(param);
         }
         0.0
+    }
+
+    #[cfg(feature = "dim2")]
+    pub(super) fn joint_make_wheel(&mut self, rid: Rid, anchor_a: Vector, anchor_b: Vector, body_a: Rid, body_b: Rid,) {
+        let physics_data = physics_data();
+        let mut joint: RapierJoint;
+        if let Some(body_a) = physics_data.collision_objects.get(&body_a)
+            && let Some(body_b) = physics_data.collision_objects.get(&body_b)
+        {
+            let id = self.next_id();
+            joint = RapierJoint::RapierWheelJoint2D(RapierWheelJoint2D::new(
+                id,
+                rid,
+                anchor_a,
+                anchor_b,
+                body_a,
+                body_b,
+                &mut physics_data.physics_engine,
+            ));
+            if let Some(mut prev_joint) = physics_data.joints.remove(&rid) {
+                joint
+                    .get_mut_base()
+                    .copy_settings_from(prev_joint.get_base(), &mut physics_data.physics_engine);
+                prev_joint
+                    .get_mut_base()
+                    .destroy_joint(&mut physics_data.physics_engine);
+            }
+        } else {
+            let id = self.next_id();
+            joint = RapierJoint::RapierEmptyJoint(RapierEmptyJoint::new(id));
+        }
+        physics_data.joints.insert(rid, joint);
+    }
+
+    #[cfg(feature = "dim2")]
+    pub(super) fn wheel_joint_set_param(&mut self, joint: Rid, param: WheelJointParam, value: f32) {
+        let physics_data = physics_data();
+        if let Some(RapierJoint::RapierWheelJoint2D(joint)) = physics_data.joints.get_mut(&joint) {
+            joint.set_param(param, value, &mut physics_data.physics_engine);
+        }
+    }
+
+    #[cfg(feature = "dim2")]
+    pub(super) fn wheel_joint_get_param(&self, joint: Rid, param: WheelJointParam) -> f32 {
+        let physics_data = physics_data();
+        if let Some(RapierJoint::RapierWheelJoint2D(joint)) = physics_data.joints.get(&joint) {
+            return joint.get_param(param);
+        }
+        0.0
+    }
+
+    #[cfg(feature = "dim2")]
+    pub(super) fn wheel_joint_set_flag(&mut self, joint: Rid, flag: WheelJointFlag, enabled: bool) {
+        let physics_data = physics_data();
+        if let Some(RapierJoint::RapierWheelJoint2D(joint)) = physics_data.joints.get_mut(&joint) {
+            joint.set_flag(flag, enabled, &mut physics_data.physics_engine);
+        }
+    }
+
+    #[cfg(feature = "dim2")]
+    pub(super) fn wheel_joint_get_flag(&self, joint: Rid, flag: WheelJointFlag) -> bool {
+        let physics_data = physics_data();
+        if let Some(RapierJoint::RapierWheelJoint2D(joint)) = physics_data.joints.get(&joint) {
+            return joint.get_flag(flag);
+        }
+        false
     }
 
     pub(super) fn joint_get_type(&self, joint: Rid) -> JointType {
