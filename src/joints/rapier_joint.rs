@@ -11,6 +11,8 @@ use physics_server_3d::JointType;
 use super::rapier_cone_twist_joint_3d::RapierConeTwistJoint3D;
 #[cfg(feature = "dim2")]
 use super::rapier_damped_spring_joint_2d::RapierDampedSpringJoint2D;
+#[cfg(feature = "dim2")]
+use super::rapier_wheel_joint_2d::RapierWheelJoint2D;
 #[cfg(feature = "dim3")]
 use super::rapier_generic_6dof_joint_3d::RapierGeneric6DOFJoint3D;
 use super::rapier_joint_base::RapierJointBase;
@@ -25,6 +27,8 @@ pub enum RapierJoint {
     RapierDampedSpringJoint2D(RapierDampedSpringJoint2D),
     #[cfg(feature = "dim2")]
     RapierGrooveJoint2D(RapierGrooveJoint2D),
+    #[cfg(feature = "dim2")]
+    RapierWheelJoint2D(RapierWheelJoint2D),
     RapierEmptyJoint(RapierEmptyJoint),
     RapierRevoluteJoint(RapierRevoluteJoint),
     #[cfg(feature = "dim3")]
@@ -74,6 +78,7 @@ impl_rapier_joint_trait!(
     RapierJoint,
     RapierDampedSpringJoint2D,
     RapierGrooveJoint2D,
+    RapierWheelJoint2D,
     RapierEmptyJoint,
     RapierRevoluteJoint
 );

@@ -1,6 +1,8 @@
 use rapier::prelude::*;
 
 use crate::rapier_wrapper::prelude::*;
+use crate::joints::wheel_joint_options::WheelJointOptions;
+
 impl PhysicsEngine {
     fn joint_wake_up_connected_rigidbodies(
         &mut self,
@@ -324,6 +326,82 @@ impl PhysicsEngine {
         {
             joint.set_motor_position(JointAxis::LinX, rest_length, stiffness, damping);
             joint.set_motor_model(JointAxis::LinX, MotorModel::AccelerationBased);
+        }
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    #[cfg(feature = "dim2")]
+    pub fn joint_create_wheel(
+        &mut self,
+        world_handle: WorldHandle,
+        body_handle_1: RigidBodyHandle,
+        body_handle_2: RigidBodyHandle,
+        anchor_1: Vector<Real>,
+        anchor_2: Vector<Real>,
+        multibody: bool,
+        kinematic: bool,
+        disable_collision: bool,
+    ) -> JointHandle {
+        self.body_wake_up(world_handle, body_handle_1, false);
+        self.body_wake_up(world_handle, body_handle_2, false);
+        if let Some(physics_world) = self.get_mut_world(world_handle) {
+
+            let mut joint = GenericJoint::new(JointAxesMask::empty());
+
+            joint.contacts_enabled = !disable_collision;
+
+            joint.set_local_anchor1(Point { coords: anchor_1 });
+            joint.set_local_anchor2(Point { coords: anchor_2 });
+
+            joint.set_motor_model(JointAxis::LinX, MotorModel::ForceBased);
+            joint.set_motor_model(JointAxis::LinY, MotorModel::ForceBased);
+            joint.set_motor_model(JointAxis::AngX, MotorModel::ForceBased);
+
+            return physics_world.insert_joint(
+                body_handle_1,
+                body_handle_2,
+                multibody,
+                kinematic,
+                joint,
+            );
+        }
+        JointHandle::default()
+    }
+
+    #[cfg(feature = "dim2")]
+    pub fn joint_change_wheel_params(
+        &mut self,
+        world_handle: WorldHandle,
+        joint_handle: JointHandle,
+        options: &WheelJointOptions,
+    ) {
+        self.joint_wake_up_connected_rigidbodies(world_handle, joint_handle);
+
+        let Some(physics_world) = self.get_mut_world(world_handle) else { return };
+        let Some(mut joint) = physics_world.get_mut_joint(joint_handle) else { return };
+
+        // X spring
+        joint.set_motor_position(JointAxis::LinX, 0.0, options.x_stiffness, options.x_damping);
+        joint.set_motor_max_force(JointAxis::LinX, f32::MAX);
+
+        // Y spring
+        joint.set_motor_position(JointAxis::LinY, 0.0, options.y_stiffness, options.y_damping);
+        joint.set_motor_max_force(JointAxis::LinY, f32::MAX);
+
+        // X limits
+        if options.x_limits_enabled {
+            joint.set_limits(JointAxis::LinX, [options.x_lower_limit, options.x_upper_limit]);
+        }
+        else {
+            joint.set_limits(JointAxis::LinX, [f32::NEG_INFINITY, f32::INFINITY]);
+        }
+
+        // Y limits
+        if options.y_limits_enabled {
+            joint.set_limits(JointAxis::LinY, [options.y_lower_limit, options.y_upper_limit]);
+        }
+        else {
+            joint.set_limits(JointAxis::LinY, [f32::NEG_INFINITY, f32::INFINITY]);
         }
     }
 
