@@ -455,11 +455,20 @@ impl PhysicsEngine {
             joint.set_motor_model(JointAxis::LinY, MotorModel::ForceBased);
             joint.set_motor_model(JointAxis::AngX, MotorModel::ForceBased);
 
+            let joint_type = if multibody {
+                if kinematic {
+                    RapierJointType::MultiBodyKinematic
+                } else {
+                    RapierJointType::MultiBody
+                }
+            } else {
+                RapierJointType::Impulse
+            };
+
             return physics_world.insert_joint(
                 body_handle_1,
                 body_handle_2,
-                multibody,
-                kinematic,
+                joint_type,
                 joint,
             );
         }
