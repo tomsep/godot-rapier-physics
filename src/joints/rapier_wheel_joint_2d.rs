@@ -3,6 +3,7 @@ use godot::prelude::*;
 
 use super::wheel_joint_options::WheelJointOptions;
 use super::rapier_joint_base::RapierJointBase;
+use super::rapier_joint_base::RapierJointType;
 use crate::bodies::rapier_collision_object::IRapierCollisionObject;
 use crate::bodies::rapier_collision_object::RapierCollisionObject;
 use crate::joints::rapier_joint::IRapierJoint;
@@ -41,8 +42,9 @@ impl RapierWheelJoint2D {
         {
             return invalid_joint;
         }
-        let rapier_anchor_a = body_a.get_base().get_inv_transform() * anchor_a;
-        let rapier_anchor_b = body_b.get_base().get_inv_transform() * anchor_b;
+        // Convert world positions to local positions without scale for proper joint anchor placement
+        let rapier_anchor_a = world_to_local_no_scale(&body_a.get_base().get_transform(), anchor_a);
+        let rapier_anchor_b = world_to_local_no_scale(&body_b.get_base().get_transform(), anchor_b);
         let rest_length = (anchor_a - anchor_b).length();
         let space_handle = body_a.get_base().get_space_id();
         let space_id = body_a.get_base().get_space_id();
@@ -58,7 +60,7 @@ impl RapierWheelJoint2D {
         );
         Self {
             options: WheelJointOptions::default(),
-            base: RapierJointBase::new(id, rid, space_id, space_handle, handle),
+            base: RapierJointBase::new(id, rid, space_id, space_handle, handle, RapierJointType::Impulse),
         }
     }
 
